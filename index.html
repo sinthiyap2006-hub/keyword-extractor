@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KeySense AI – Keyword Extractor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cabinet+Grotesk:wght@400;500;700;800;900&family=Instrument+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- SIDEBAR — components/sidebar.html -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">🔍</div>
+      <div class="logo-name">KeySense <span>AI</span></div>
+    </div>
+
+    <div class="nav-label">Main</div>
+    <ul class="nav-list">
+      <li class="nav-item active" onclick="goPage('extract',this)">
+        <div class="nav-icon">✏️</div>
+        Extract Keywords
+      </li>
+      <li class="nav-item" onclick="goPage('results',this)">
+        <div class="nav-icon">🏆</div>
+        Results
+      </li>
+      <li class="nav-item" onclick="goPage('cloud',this)">
+        <div class="nav-icon">☁️</div>
+        Word Cloud
+      </li>
+      <li class="nav-item" onclick="goPage('analyze',this)">
+        <div class="nav-icon">📊</div>
+        Analysis
+      </li>
+    </ul>
+
+    <div class="nav-label">More</div>
+    <ul class="nav-list">
+      <li class="nav-item" onclick="goPage('history',this)">
+        <div class="nav-icon">📜</div>
+        History
+      </li>
+      <li class="nav-item" onclick="goPage('tips',this)">
+        <div class="nav-icon">💡</div>
+        Tips & Guide
+      </li>
+      <li class="nav-item" onclick="goPage('settings',this)">
+        <div class="nav-icon">⚙️</div>
+        Settings
+      </li>
+      <li class="nav-item" onclick="goPage('about',this)">
+        <div class="nav-icon">ℹ️</div>
+        About
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-badge">
+        <strong>✨ AI Powered</strong>
+        Claude Sonnet — Real-time keyword intelligence
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+
+    <!-- PAGE: EXTRACT — components/extract.html -->
+    <div class="page-section active" id="page-extract">
+      <div class="page-header">
+        <div class="page-title">Extract <span class="hl">Keywords</span></div>
+        <div class="page-sub">Paste your content and let AI find what matters most</div>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background:rgba(108,99,255,0.15)">✏️</div>
+          Your Text
+        </div>
+        <textarea id="inputText" maxlength="5000"
+          placeholder="Paste your article, blog post, product description, or any text here...
+
+The AI will analyze it and extract the most relevant keywords with frequency scores and relevance rankings."
+          oninput="updateCounter()"></textarea>
+        <div class="word-count" id="counter">0 / 5000 chars</div>
+        <div class="mode-row">
+          <button class="mode-btn active" onclick="setMode(this,'smart')">🧠 Smart AI</button>
+          <button class="mode-btn" onclick="setMode(this,'frequency')">📊 Frequency</button>
+          <button class="mode-btn" onclick="setMode(this,'semantic')">🎯 Semantic</button>
+        </div>
+        <div class="chips-row">
+          <div class="chip on" onclick="this.classList.toggle('on')">🚫 Filter Stop Words</div>
+          <div class="chip" onclick="this.classList.toggle('on')">📝 Include Phrases</div>
+          <div class="chip" onclick="this.classList.toggle('on')">🔤 Stem Words</div>
+          <div class="chip on" onclick="this.classList.toggle('on')">📈 Show Scores</div>
+        </div>
+        <button class="extract-btn" id="extractBtn" onclick="extractKeywords()">
+          <div class="spinner" id="btnSpinner"></div>
+          ✨ Extract Keywords
+        </button>
+      </div>
+    </div>
+
+    <!-- PAGE: RESULTS — components/results.html -->
+    <div class="page-section" id="page-results">
+      <div class="page-header">
+        <div class="page-title">Keyword <span class="hl">Results</span></div>
+        <div class="page-sub">Click any keyword to copy it instantly</div>
+      </div>
+      <div class="stat-grid" id="statGrid">
+        <div class="stat-card">
+          <div class="stat-label">Keywords Found</div>
+          <div class="stat-val" id="statCount" style="color:#38bdf8">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Top Score</div>
+          <div class="stat-val" id="statTop" style="color:#ec4899">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Avg Score</div>
+          <div class="stat-val" id="statAvg" style="color:#7dd3fc">—</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="results-header">
+          <div class="card-title" style="margin-bottom:0">
+            <div class="card-icon" style="background:rgba(255,107,157,0.15)">🏆</div>
+            Top Keywords
+          </div>
+          <div class="count-badge" id="kwBadge" style="display:none"></div>
+        </div>
+        <div id="resultPanel">
+          <div class="empty">
+            <div class="empty-icon">🔍</div>
+            <div class="empty-text">No keywords yet.<br>Go to Extract tab and analyze some text!</div>
+          </div>
+        </div>
+        <div class="export-row" id="exportRow" style="display:none">
+          <button class="exp-btn" onclick="copyAll()">📋 Copy All</button>
+          <button class="exp-btn" onclick="downloadCSV()">📥 CSV</button>
+          <button class="exp-btn" onclick="downloadJSON()">{ } JSON</button>
+          <button class="exp-btn" onclick="copyCloud()">☁️ Cloud Text</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: WORD CLOUD -->
+    <div class="page-section" id="page-cloud">
+      <div class="page-header">
+        <div class="page-title">Visual <span class="hl">Word Cloud</span></div>
+        <div class="page-sub">Keyword prominence visualized — bigger = more relevant</div>
+      </div>
+      <div class="card" id="cloudCard">
+        <div class="card-title">
+          <div class="card-icon" style="background:rgba(0,212,177,0.15)">☁️</div>
+          Word Cloud
+        </div>
+        <div class="cloud-wrap" id="cloudWrap">
+          <div class="empty">
+            <div class="empty-icon">☁️</div>
+            <div class="empty-text">Extract keywords first to see the cloud!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: ANALYSIS -->
+    <div class="page-section" id="page-analyze">
+      <div class="page-header">
+        <div class="page-title">Keyword <span class="hl">Analysis</span></div>
+        <div class="page-sub">Deep dive into your keyword data</div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">
+            <div class="card-icon" style="background:rgba(108,99,255,0.15)">📈</div>
+            Score Distribution
+          </div>
+          <div id="scoreChart">
+            <div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Extract keywords to see analysis</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            <div class="card-icon" style="background:rgba(255,209,102,0.15)">🔤</div>
+            Frequency Breakdown
+          </div>
+          <div id="freqChart">
+            <div class="empty"><div class="empty-icon">📊</div><div class="empty-text">Extract keywords to see analysis</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:20px">
+        <div class="card-title">
+          <div class="card-icon" style="background:rgba(0,212,177,0.15)">🏅</div>
+          Keyword Rankings Table
+        </div>
+        <div id="analysisTable">
+          <div class="empty"><div class="empty-icon">📋</div><div class="empty-text">No data yet. Extract keywords first!</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: HISTORY -->
+    <div class="page-section" id="page-history">
+      <div class="page-header">
+        <div class="page-title">Search <span class="hl">History</span></div>
+        <div class="page-sub">Your recent keyword extractions</div>
+      </div>
+      <div class="card">
+        <div class="card-title">
+          <div class="card-icon" style="background:rgba(255,107,157,0.15)">📜</div>
+          Recent Sessions
+        </div>
+        <div class="history-items" id="historyList">
+          <div class="empty">
+            <div class="empty-icon">📜</div>
+            <div class="empty-text">No history yet. Start extracting!</div>
+          </div>
+        </div>
+        <div style="margin-top:14px">
+          <button class="exp-btn" style="width:100%;padding:10px" onclick="clearHistory()">🗑️ Clear History</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: TIPS -->
+    <div class="page-section" id="page-tips">
+      <div class="page-header">
+        <div class="page-title">Tips & <span class="hl">Guide</span></div>
+        <div class="page-sub">Get the most out of KeySense AI</div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">
+            <div class="card-icon" style="background:rgba(108,99,255,0.15)">💡</div>
+            Best Practices
+          </div>
+          <div class="tips-list">
+            <div class="tip"><div class="tip-num">1</div>Use longer, content-rich text (300+ words) for more accurate keyword extraction.</div>
+            <div class="tip"><div class="tip-num">2</div>Enable "Filter Stop Words" to remove common words like "the", "is", "and" automatically.</div>
+            <div class="tip"><div class="tip-num">3</div>Try "Include Phrases" to extract multi-word keyword combinations.</div>
+            <div class="tip"><div class="tip-num">4</div>Use Smart AI mode for context-aware extraction beyond simple frequency counting.</div>
+            <div class="tip"><div class="tip-num">5</div>Click any keyword in Results to instantly copy it to your clipboard.</div>
+            <div class="tip"><div class="tip-num">6</div>Export to CSV for use in spreadsheets, SEO tools, or content planning workflows.</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">
+            <div class="card-icon" style="background:rgba(0,212,177,0.15)">🎯</div>
+            Mode Guide
+          </div>
+          <div class="tips-list">
+            <div class="tip"><div class="tip-num" style="background:linear-gradient(135deg,#0ea5e9,#7dd3fc)">AI</div><strong style="color:var(--text)">Smart AI:</strong> Uses Claude AI to understand context and extract meaningful keywords beyond raw frequency.</div>
+            <div class="tip"><div class="tip-num" style="background:linear-gradient(135deg,#38bdf8,#bae6fd)">FR</div><strong style="color:var(--text)">Frequency:</strong> Pure statistical analysis — ranks keywords by how often they appear in your text.</div>
+            <div class="tip"><div class="tip-num" style="background:linear-gradient(135deg,#ec4899,#f9a8d4)">SE</div><strong style="color:var(--text)">Semantic:</strong> Groups related words and concepts, useful for topic modeling and content analysis.</div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:20px">
+        <div class="card-title">
+          <div class="card-icon" style="background:rgba(255,209,102,0.15)">🚀</div>
+          Use Cases
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px;text-align:center">
+            <div style="font-size:1.4rem;margin-bottom:6px">🔎</div>
+            <div style="font-size:0.82rem;font-weight:600;margin-bottom:4px">SEO</div>
+            <div style="font-size:0.75rem;color:var(--muted2)">Find keywords to target for search engine optimization</div>
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px;text-align:center">
+            <div style="font-size:1.4rem;margin-bottom:6px">✍️</div>
+            <div style="font-size:0.82rem;font-weight:600;margin-bottom:4px">Content</div>
+            <div style="font-size:0.75rem;color:var(--muted2)">Identify main themes and topics in your content</div>
+          </div>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px;text-align:center">
+            <div style="font-size:1.4rem;margin-bottom:6px">📊</div>
+            <div style="font-size:0.82rem;font-weight:600;margin-bottom:4px">Research</div>
+            <div style="font-size:0.75rem;color:var(--muted2)">Analyze documents and extract key concepts fast</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: SETTINGS -->
+    <div class="page-section" id="page-settings">
+      <div class="page-header">
+        <div class="page-title">App <span class="hl">Settings</span></div>
+        <div class="page-sub">Customize your KeySense AI experience</div>
+      </div>
+      <div class="card">
+        <div class="settings-group">
+          <div class="settings-title">Extraction Defaults</div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="s-name">Auto Filter Stop Words</div>
+              <div class="s-desc">Remove common words by default</div>
+            </div>
+            <div class="toggle on" id="t1" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="s-name">Include Keyphrases</div>
+              <div class="s-desc">Extract multi-word phrases by default</div>
+            </div>
+            <div class="toggle" id="t2" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="s-name">Word Stemming</div>
+              <div class="s-desc">Group run/running/ran as same keyword</div>
+            </div>
+            <div class="toggle" id="t3" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="setting-row" style="border-bottom:none">
+            <div class="setting-info">
+              <div class="s-name">Show Relevance Scores</div>
+              <div class="s-desc">Display AI relevance score next to each keyword</div>
+            </div>
+            <div class="toggle on" id="t4" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+        <div class="settings-group">
+          <div class="settings-title">Display</div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="s-name">Show Word Cloud</div>
+              <div class="s-desc">Enable visual cloud after extraction</div>
+            </div>
+            <div class="toggle on" id="t5" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="setting-row" style="border-bottom:none">
+            <div class="setting-info">
+              <div class="s-name">Auto-Navigate to Results</div>
+              <div class="s-desc">Switch to Results tab after extraction</div>
+            </div>
+            <div class="toggle on" id="t6" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: ABOUT -->
+    <div class="page-section" id="page-about">
+      <div class="page-header">
+        <div class="page-title">About <span class="hl">KeySense</span></div>
+        <div class="page-sub">AI-powered keyword intelligence</div>
+      </div>
+      <div class="about-hero">
+        <div class="logo-mark" style="width:56px;height:56px;border-radius:16px;font-size:24px;margin:0 auto 16px">🔍</div>
+        <div class="about-title">KeySense <span style="background:linear-gradient(90deg,#0ea5e9,#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent">AI</span></div>
+        <div style="color:var(--muted2);font-size:0.9rem">Intelligent keyword extraction powered by Claude AI</div>
+        <div style="margin-top:16px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap">
+          <div style="background:rgba(14,165,233,0.15);border:1px solid rgba(14,165,233,0.2);border-radius:99px;padding:5px 14px;font-size:0.75rem;color:#7dd3fc">v2.0</div>
+          <div style="background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.2);border-radius:99px;padding:5px 14px;font-size:0.75rem;color:#38bdf8">Claude Sonnet</div>
+          <div style="background:rgba(236,72,153,0.15);border:1px solid rgba(236,72,153,0.2);border-radius:99px;padding:5px 14px;font-size:0.75rem;color:#ec4899">AI Powered</div>
+        </div>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <span class="feature-icon">🧠</span>
+          <div class="feature-name">Smart AI Extraction</div>
+          <div class="feature-desc">Powered by Claude to understand context, not just count words. Gets the keywords that actually matter.</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">📊</span>
+          <div class="feature-name">Multiple Modes</div>
+          <div class="feature-desc">Smart AI, Frequency-based, and Semantic modes — choose what fits your use case.</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">☁️</span>
+          <div class="feature-name">Visual Word Cloud</div>
+          <div class="feature-desc">See your keywords in a beautiful interactive cloud where size reflects relevance.</div>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">📥</span>
+          <div class="feature-name">Export Anywhere</div>
+          <div class="feature-desc">Download as CSV or JSON, or copy all keywords instantly for any workflow.</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✅ Copied!</div>
+
+<script src="assets/js/app.js"></script>
+</body>
+</html>
